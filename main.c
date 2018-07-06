@@ -36,6 +36,7 @@ typedef struct no {
 typedef no *No;
 
 typedef int (*Comparacao)(No, No);
+typedef void(*FuncaoImpressao)(No,FILE*);
 
 typedef enum {
     CRESCENTE, DECRESCENTE
@@ -43,7 +44,6 @@ typedef enum {
 
 /*
  * Campos do arquivo
- * 
  */
 
 typedef enum {
@@ -167,7 +167,21 @@ No buscarNo(Codigo c, No arvore) {
     }
 }
 
-void imprimir(No arvore, OrdemArvore ordem, int *qtde, FILE *saida) {
+void imprimeNumRegistros(No no, FILE *saida) {
+    if ((no!=NULL) && (saida!=NULL)) {
+        fprintf(saida, "%zu;%d;\n", no->funcionario->codigo,
+                no->funcionario->numRegistros);
+    }
+}
+
+void imprimeRendimentos(No no, FILE *saida) {
+    if ((no!=NULL) && (saida!=NULL)) {
+        fprintf(saida, "%zu;%.2f;\n", no->funcionario->codigo,
+                no->funcionario->rendimentos);
+    }
+}
+
+void imprimir(No arvore, OrdemArvore ordem, FuncaoImpressao fprt, int *qtde, FILE *saida) {
     if ((arvore == NULL) || ((qtde != NULL) && (*qtde) >= 0)) {
         return;
     }
@@ -177,19 +191,21 @@ void imprimir(No arvore, OrdemArvore ordem, int *qtde, FILE *saida) {
     }
 
     if (ordem == CRESCENTE) {
-        imprimir(arvore->esquerdo, ordem, qtde, saida);
+        imprimir(arvore->esquerdo, ordem, fprt, qtde, saida);
         if (arvore->funcionario != NULL) {
             if (qtde) (*qtde) -= 1;
-            fprintf(saida, "Codigo: %zu, Registros: %d, Rendimentos: %.2f\n", arvore->funcionario->codigo, arvore->funcionario->numRegistros, arvore->funcionario->rendimentos);
+            (*fprt)(arvore,saida);
+            //fprintf(saida, "Codigo: %zu, Registros: %d, Rendimentos: %.2f\n", arvore->funcionario->codigo, arvore->funcionario->numRegistros, arvore->funcionario->rendimentos);
         }
-        imprimir(arvore->direito, ordem, qtde, saida);
+        imprimir(arvore->direito, ordem, fprt, qtde, saida);
     } else {
-        imprimir(arvore->direito, ordem, qtde, saida);
+        imprimir(arvore->direito, ordem, fprt, qtde, saida);
         if (saida, arvore->funcionario != NULL) {
             if (qtde) (*qtde) -= 1;
-            fprintf(saida, "Codigo: %zu, Registros: %d, Rendimentos: %.2f\n", arvore->funcionario->codigo, arvore->funcionario->numRegistros, arvore->funcionario->rendimentos);
+            (*fprt)(arvore,saida);
+            //fprintf(saida, "Codigo: %zu, Registros: %d, Rendimentos: %.2f\n", arvore->funcionario->codigo, arvore->funcionario->numRegistros, arvore->funcionario->rendimentos);
         }
-        imprimir(arvore->esquerdo, ordem, qtde, saida);
+        imprimir(arvore->esquerdo, ordem, fprt, qtde, saida);
     }
 
 }
@@ -216,7 +232,6 @@ No carregarRegistros(Arquivo listaArquivos, size_t limite) {
 
         char *nomeArquivo = listaArquivos->nomeArquivo;
 
-        ssize_t caracteres = 0;
         size_t len = 0, numLinha = 0;
 
         arquivo = fopen(nomeArquivo, "r");
@@ -227,7 +242,7 @@ No carregarRegistros(Arquivo listaArquivos, size_t limite) {
             return NULL;
         }
 
-        while (((caracteres = getline(&linha, &len, arquivo)) != -1) && (numLinha < limite)) {
+        while (((getline(&linha, &len, arquivo)) != -1) && (numLinha < limite)) {
 
             numLinha += 1;
 
@@ -386,9 +401,8 @@ int main(int argc, char** argv) {
 
     char *linha = NULL;
     size_t len = 0;
-    ssize_t caracteres = 0;
 
-    while (caracteres = getline(&linha, &len, arquivoListaEntrada) != -1) {
+    while (getline(&linha, &len, arquivoListaEntrada) != -1) {
 
         int ultimoCaractere = strlen(linha) - 1;
 
@@ -413,7 +427,7 @@ int main(int argc, char** argv) {
     }
 
     if (arquivoListaEntrada) {
-        free(arquivoListaEntrada);
+        fclose(arquivoListaEntrada);
         arquivoListaEntrada = NULL;
     }
 
@@ -424,7 +438,10 @@ int main(int argc, char** argv) {
         if (!arquivoSaida) {
             printf("\n\nFuncionarios:\n\n");
         }
-        imprimir(arvore, CRESCENTE, NULL, arquivoSaida);
+
+        fprintf(arquivoSaida, "#Numero de registros por pessoa:\n");
+        fprintf(arquivoSaida, "#ID_USUARIO;NUM_REGISTROS\n");
+        imprimir(arvore, CRESCENTE, &imprimeNumRegistros, NULL, arquivoSaida);
         No arvoreOrdenadaPorRendimentos = NULL;
 
         if (!arquivoSaida) {
@@ -432,12 +449,16 @@ int main(int argc, char** argv) {
         }
 
         ordenar(arvore, &arvoreOrdenadaPorRendimentos, &compararPorRendimentos);
-        imprimir(arvoreOrdenadaPorRendimentos, DECRESCENTE, NULL, arquivoSaida);
+
+        fprintf(arquivoSaida, "#Pessoas com maiores rendimentos:\n");
+        fprintf(arquivoSaida, "#ID_USUARIO;RENDIMENTOS\n");
+        imprimir(arvoreOrdenadaPorRendimentos, DECRESCENTE, &imprimeRendimentos,
+                NULL, arquivoSaida);
 
         fflush(arquivoSaida);
         fclose(arquivoSaida);
-        arquivoSaida=NULL;
-        
+        arquivoSaida = NULL;
+
         printf("\n\nConcluido!\n\n");
 
     }
