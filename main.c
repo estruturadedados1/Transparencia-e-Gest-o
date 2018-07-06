@@ -41,10 +41,10 @@ typedef enum {
     CRESCENTE, DECRESCENTE
 } OrdemArvore;
 
-
-
-
-
+/*
+ * Campos do arquivo
+ * 
+ */
 
 typedef enum {
     ANO,
@@ -167,25 +167,29 @@ No buscarNo(Codigo c, No arvore) {
     }
 }
 
-void imprimir(No arvore, OrdemArvore ordem, int *qtde) {
+void imprimir(No arvore, OrdemArvore ordem, int *qtde, FILE *saida) {
     if ((arvore == NULL) || ((qtde != NULL) && (*qtde) >= 0)) {
         return;
     }
 
+    if (saida == NULL) {
+        saida = stdout;
+    }
+
     if (ordem == CRESCENTE) {
-        imprimir(arvore->esquerdo, ordem, qtde);
+        imprimir(arvore->esquerdo, ordem, qtde, saida);
         if (arvore->funcionario != NULL) {
             if (qtde) (*qtde) -= 1;
-            printf("Codigo: %zu, Registros: %d, Rendimentos: %.2f\n", arvore->funcionario->codigo, arvore->funcionario->numRegistros, arvore->funcionario->rendimentos);
+            fprintf(saida, "Codigo: %zu, Registros: %d, Rendimentos: %.2f\n", arvore->funcionario->codigo, arvore->funcionario->numRegistros, arvore->funcionario->rendimentos);
         }
-        imprimir(arvore->direito, ordem, qtde);
+        imprimir(arvore->direito, ordem, qtde, saida);
     } else {
-        imprimir(arvore->direito, ordem, qtde);
-        if (arvore->funcionario != NULL) {
+        imprimir(arvore->direito, ordem, qtde, saida);
+        if (saida, arvore->funcionario != NULL) {
             if (qtde) (*qtde) -= 1;
-            printf("Codigo: %zu, Registros: %d, Rendimentos: %.2f\n", arvore->funcionario->codigo, arvore->funcionario->numRegistros, arvore->funcionario->rendimentos);
+            fprintf(saida, "Codigo: %zu, Registros: %d, Rendimentos: %.2f\n", arvore->funcionario->codigo, arvore->funcionario->numRegistros, arvore->funcionario->rendimentos);
         }
-        imprimir(arvore->esquerdo, ordem, qtde);
+        imprimir(arvore->esquerdo, ordem, qtde, saida);
     }
 
 }
@@ -337,34 +341,46 @@ int main(int argc, char** argv) {
 
     Arquivo listaArquivos = NULL;
     size_t limite = -1;
-    char *arquivoSaida = NULL;
-    char *arquivoEntrada = NULL;
+    char *strArquivoSaida = NULL;
+    char *strArquivoEntrada = NULL;
+    FILE *arquivoSaida = NULL;
+    FILE *arquivoListaEntrada = NULL;
 
-    for (int i=1; i<argc; i++) {
-        if(strstr(argv[i],LIMITE_REGISTROS)) {
-            limite = atoi(&(argv[i][sizeof(LIMITE_REGISTROS)-1]));
-            printf("\nLimite de registros por arquivo: %zu",limite);
-        } else if(strstr(argv[i],ARQUIVO_ENTRADA)) {
-            arquivoEntrada = &(argv[i][sizeof(ARQUIVO_ENTRADA)-1]);
-            printf("\nLista de arquivos: %s",arquivoEntrada);
-        } else if(strstr(argv[i],ARQUIVO_SAIDA)) {
-            arquivoSaida = &(argv[i][sizeof(ARQUIVO_SAIDA)-1]);
-            printf("\nArquivo de Saida: %s",arquivoSaida);
+    for (int i = 1; i < argc; i++) {
+        if (strstr(argv[i], LIMITE_REGISTROS)) {
+            limite = atoi(&(argv[i][sizeof (LIMITE_REGISTROS) - 1]));
+            printf("\nLimite de registros por arquivo: %zu", limite);
+        } else if (strstr(argv[i], ARQUIVO_ENTRADA)) {
+            strArquivoEntrada = &(argv[i][sizeof (ARQUIVO_ENTRADA) - 1]);
+            printf("\nLista de arquivos: %s", strArquivoEntrada);
+        } else if (strstr(argv[i], ARQUIVO_SAIDA)) {
+            strArquivoSaida = &(argv[i][sizeof (ARQUIVO_SAIDA) - 1]);
+            printf("\nArquivo de Saida: %s", strArquivoSaida);
         } else {
             printf("\nArgumento invalido: \'%s\'!\n", argv[i]);
             exit(EXIT_FAILURE);
         }
     }
-    
-    if (arquivoEntrada == NULL) {
+
+    if (strArquivoEntrada == NULL) {
         printf("\nInforme o arquivo contendo o caminho para os arquivos que serao analisados!\n");
         exit(EXIT_FAILURE);
     }
 
-    FILE *arquivo = fopen(arquivoEntrada, "r");
+    if (strArquivoSaida != NULL) {
 
-    if (arquivo == NULL) {
-        printf("\nErro ao abrir arquivo \'%s\'!\n", argv[1]);
+        arquivoSaida = fopen(strArquivoSaida, "w");
+
+        if (arquivoSaida == NULL) {
+            printf("\nErro ao escrever o arquivo \'%s\'!\n", strArquivoSaida);
+            exit(EXIT_FAILURE);
+        }
+
+    }
+    arquivoListaEntrada = fopen(strArquivoEntrada, "r");
+
+    if (arquivoListaEntrada == NULL) {
+        printf("\nErro ao abrir o arquivo \'%s\'!\n", strArquivoEntrada);
         exit(EXIT_FAILURE);
     }
 
@@ -372,7 +388,7 @@ int main(int argc, char** argv) {
     size_t len = 0;
     ssize_t caracteres = 0;
 
-    while (caracteres = getline(&linha, &len, arquivo) != -1) {
+    while (caracteres = getline(&linha, &len, arquivoListaEntrada) != -1) {
 
         int ultimoCaractere = strlen(linha) - 1;
 
@@ -396,24 +412,32 @@ int main(int argc, char** argv) {
 
     }
 
-    if (arquivo) {
-        free(arquivo);
-        arquivo = NULL;
+    if (arquivoListaEntrada) {
+        free(arquivoListaEntrada);
+        arquivoListaEntrada = NULL;
     }
 
     No arvore = carregarRegistros(listaArquivos, limite);
 
     if (arvore) {
 
-        printf("\n\nFuncionarios:\n\n");
-        imprimir(arvore, CRESCENTE, NULL);
+        if (!arquivoSaida) {
+            printf("\n\nFuncionarios:\n\n");
+        }
+        imprimir(arvore, CRESCENTE, NULL, arquivoSaida);
         No arvoreOrdenadaPorRendimentos = NULL;
 
-        printf("\n\nFuncionarios ordenados:\n\n");
+        if (!arquivoSaida) {
+            printf("\n\nFuncionarios ordenados:\n\n");
+        }
 
         ordenar(arvore, &arvoreOrdenadaPorRendimentos, &compararPorRendimentos);
-        imprimir(arvoreOrdenadaPorRendimentos, DECRESCENTE, NULL);
+        imprimir(arvoreOrdenadaPorRendimentos, DECRESCENTE, NULL, arquivoSaida);
 
+        fflush(arquivoSaida);
+        fclose(arquivoSaida);
+        arquivoSaida=NULL;
+        
         printf("\n\nConcluido!\n\n");
 
     }
