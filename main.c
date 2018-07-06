@@ -35,6 +35,126 @@ typedef struct no {
 } no;
 typedef no *No;
 
+typedef int (*Comparacao)(No, No);
+
+typedef enum {
+    CRESCENTE, DECRESCENTE
+} OrdemArvore;
+
+
+
+
+
+
+typedef enum {
+    ANO,
+    MES,
+    ID_SERVIDOR_PORTAL,
+    CPF,
+    NOME,
+    REMUNERACAO_BASICA_BRUTA_BRL,
+    REMUNERACAO_BASICA_BRUTA_USD,
+    ABATE_TETO_BRL,
+    ABATE_TETO_USD,
+    GRATIFICACAO_NATALINA_BRL,
+    GRATIFICACAO_NATALINA_USD,
+    ABATE_TETO_DA_GRATIFICACAO_NATALINA_BRL,
+    ABATE_TETO_DA_GRATIFICACAO_NATALINA_USD,
+    FERIAS_BRL,
+    FERIAS_USD,
+    OUTRAS_REMUNERACOES_EVENTUAIS_BRL,
+    OUTRAS_REMUNERACOES_EVENTUAIS_USD,
+    IRRF_BRL,
+    IRRF_USD,
+    PSS_RPGS_BRL,
+    PSS_RPGS_USD,
+    PENSAO_MILITAR_BRL,
+    PENSAO_MILITAR_USD,
+    FUNDO_DE_SAUDE_BRL,
+    FUNDO_DE_SAUDE_USD,
+    TAXA_DE_OCUPACAO_IMOVEL_FUNCIONAL_BRL,
+    TAXA_DE_OCUPACAO_IMOVEL_FUNCIONAL_USD,
+    DEMAIS_DEDUCOES_BRL,
+    DEMAIS_DEDUCOES_USD,
+    REMUNERACAO_APOS_DEDUCOES_OBRIGATORIAS_BRL,
+    REMUNERACAO_APOS_DEDUCOES_OBRIGATORIAS_USD,
+    VERBAS_INDENIZATORIAS_REGISTRADAS_EM_SISTEMAS_DE_PESSOAL_CIVIL_BRL,
+    VERBAS_INDENIZATORIAS_REGISTRADAS_EM_SISTEMAS_DE_PESSOAL_CIVIL_USD,
+    VERBAS_INDENIZATORIAS_REGISTRADAS_EM_SISTEMAS_DE_PESSOAL_MILITAR_BRL,
+    VERBAS_INDENIZATORIAS_REGISTRADAS_EM_SISTEMAS_DE_PESSOAL_MILITAR_USD,
+    VERBAS_INDENIZATORIAS_PROGRAMA_DESLIGAMENTO_VOLUNTARIO_MP_792_2017_BRL,
+    VERBAS_INDENIZATORIAS_PROGRAMA_DESLIGAMENTO_VOLUNTARIO_MP_792_2017_USD,
+    TOTAL_DE_VERBAS_INDENIZATORIAS_BRL,
+    TOTAL_DE_VERBAS_INDENIZATORIAS_USD,
+    TOTAL_DE_HONORARIOS_JETONS
+}
+Campos;
+
+int compararPorCodigo(No n1, No n2) {
+    if ((n1 != NULL) && (n2 != NULL)) {
+        if ((n1->funcionario != NULL) && (n2->funcionario != NULL)) {
+            if (n1->funcionario->codigo > n2->funcionario->codigo) {
+                return -1;
+            } else if (n1->funcionario->codigo < n2->funcionario->codigo) {
+                return 1;
+            } else {
+                return 0;
+            }
+        } else {
+            printf("\nERRO: Comparacao de nos com funcionarios nulos!\n");
+            exit(EXIT_FAILURE);
+        }
+    } else {
+        printf("\nERRO: Comparacao de nos nulos!\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+int compararPorRendimentos(No n1, No n2) {
+    if ((n1 != NULL) && (n2 != NULL)) {
+        if ((n1->funcionario != NULL) && (n2->funcionario != NULL)) {
+            if (n1->funcionario->rendimentos > n2->funcionario->rendimentos) {
+                return -1;
+            } else if (n1->funcionario->rendimentos < n2->funcionario->rendimentos) {
+                return 1;
+            } else {
+                return 0;
+            }
+        } else {
+            printf("\nERRO: Comparacao de nos com funcionarios nulos!\n");
+            exit(EXIT_FAILURE);
+        }
+    } else {
+        printf("\nERRO: Comparacao de nos nulos!\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+No inserir(No no, No *arvore, Comparacao comparacao) {
+    if (*arvore == NULL) {
+        *arvore = no;
+        return *arvore;
+    } else if (comparacao((*arvore), no) < 0) {
+        return inserir(no, &((*arvore)->esquerdo), comparacao);
+    } else {
+        return inserir(no, &((*arvore)->direito), comparacao);
+    }
+}
+
+void ordenar(No arvore, No *arvoreOrdenada, Comparacao comparacao) {
+    if (arvore != NULL) {
+        ordenar(arvore->esquerdo, arvoreOrdenada, comparacao);
+        ordenar(arvore->direito, arvoreOrdenada, comparacao);
+        arvore->direito = NULL;
+        arvore->esquerdo = NULL;
+        if (*arvoreOrdenada == NULL) {
+            *arvoreOrdenada = arvore;
+        } else {
+            inserir(arvore, arvoreOrdenada, comparacao);
+        }
+    }
+}
+
 No buscarNo(Codigo c, No arvore) {
     if (arvore == NULL) {
         return NULL;
@@ -47,61 +167,27 @@ No buscarNo(Codigo c, No arvore) {
     }
 }
 
-No inserirNo(No no_funcionario, No *arvore) {
-    if (*arvore == NULL) {
-        *arvore = no_funcionario;
-        return *arvore;
-    } else if ((*arvore)->funcionario->codigo > no_funcionario->funcionario->codigo) {
-        return inserirNo(no_funcionario, &((*arvore)->esquerdo));
-    } else if ((*arvore)->funcionario->codigo <= no_funcionario->funcionario->codigo) {
-        return inserirNo(no_funcionario, &((*arvore)->direito));
+void imprimir(No arvore, OrdemArvore ordem, int *qtde) {
+    if ((arvore == NULL) || ((qtde != NULL) && (*qtde) >= 0)) {
+        return;
     }
-}
 
-void inserirNoPorRendimento(No no_funcionario, No *arvore) {
-    if (*arvore == NULL) {
-        *arvore = no_funcionario;
-    } else if ((*arvore)->funcionario->rendimentos > no_funcionario->funcionario->rendimentos) {
-        inserirNoPorRendimento(no_funcionario, &((*arvore)->esquerdo));
-    } else if ((*arvore)->funcionario->rendimentos <= no_funcionario->funcionario->rendimentos) {
-        inserirNoPorRendimento(no_funcionario, &((*arvore)->direito));
-    }
-}
-
-void ordenarPorRendimento(No arvore, No *arvoreOrdenada) {
-    if (arvore != NULL) {
-        ordenarPorRendimento(arvore->esquerdo, arvoreOrdenada);
-        ordenarPorRendimento(arvore->direito, arvoreOrdenada);
-        arvore->direito = NULL;
-        arvore->esquerdo = NULL;
-        if (*arvoreOrdenada == NULL) {
-            *arvoreOrdenada = arvore;
-        } else {
-            inserirNoPorRendimento(arvore, arvoreOrdenada);
+    if (ordem == CRESCENTE) {
+        imprimir(arvore->esquerdo, ordem, qtde);
+        if (arvore->funcionario != NULL) {
+            if (qtde) (*qtde) -= 1;
+            printf("Codigo: %zu, Registros: %d, Rendimentos: %.2f\n", arvore->funcionario->codigo, arvore->funcionario->numRegistros, arvore->funcionario->rendimentos);
         }
+        imprimir(arvore->direito, ordem, qtde);
+    } else {
+        imprimir(arvore->direito, ordem, qtde);
+        if (arvore->funcionario != NULL) {
+            if (qtde) (*qtde) -= 1;
+            printf("Codigo: %zu, Registros: %d, Rendimentos: %.2f\n", arvore->funcionario->codigo, arvore->funcionario->numRegistros, arvore->funcionario->rendimentos);
+        }
+        imprimir(arvore->esquerdo, ordem, qtde);
     }
-}
 
-void imprimirArvoreCrescente(No arvore) {
-    if (arvore == NULL) {
-        return;
-    }
-    imprimirArvoreCrescente(arvore->esquerdo);
-    if (arvore->funcionario != NULL) {
-        printf("Codigo: %zu, Registros: %d, Rendimentos: %.2f\n", arvore->funcionario->codigo, arvore->funcionario->numRegistros, arvore->funcionario->rendimentos);
-    }
-    imprimirArvoreCrescente(arvore->direito);
-}
-
-void imprimirArvoreDecrescente(No arvore) {
-    if (arvore == NULL) {
-        return;
-    }
-    imprimirArvoreDecrescente(arvore->direito);
-    if (arvore->funcionario != NULL) {
-        printf("Codigo: %zu, Rendimentos %.2f\n", arvore->funcionario->codigo, arvore->funcionario->rendimentos);
-    }
-    imprimirArvoreDecrescente(arvore->esquerdo);
 }
 
 Registro ultimoRegistro(Registro reg) {
@@ -157,29 +243,24 @@ No carregarRegistros(Arquivo listaArquivos, size_t limite) {
 
                 while (token != NULL) {
 
-                    num_campo += 1;
-
-                    //printf(" %s\n", token);
                     switch (num_campo) {
-                        case 3:
-                            //printf("Codigo: %s\n", token);
+                        case ID_SERVIDOR_PORTAL:
                             codigo = atol(token);
                             break;
-                        case 10:
-                        case 14:
-                        case 16:
-                        case 22:
-                        case 32:
-                        case 34:
-                            //printf("Valor: %.2f\n", atof(token));
+                        case GRATIFICACAO_NATALINA_BRL:
+                        case FERIAS_BRL:
+                        case OUTRAS_REMUNERACOES_EVENTUAIS_BRL:
+                        case PENSAO_MILITAR_BRL:
+                        case VERBAS_INDENIZATORIAS_REGISTRADAS_EM_SISTEMAS_DE_PESSOAL_CIVIL_BRL:
+                        case VERBAS_INDENIZATORIAS_REGISTRADAS_EM_SISTEMAS_DE_PESSOAL_MILITAR_BRL:
                             rendimentos += atof(token);
                             break;
                     }
 
                     token = strtok(NULL, separador);
-                }
+                    num_campo += 1;
 
-                //printf("Buscanco funcionario...\n");
+                }
 
                 Registro reg = (Registro) malloc(sizeof (registro));
 
@@ -189,27 +270,25 @@ No carregarRegistros(Arquivo listaArquivos, size_t limite) {
                     reg->proximoRegistro = NULL;
                 }
 
-                No no_funcionario = buscarNo(codigo, arvore);
+                No no = buscarNo(codigo, arvore);
 
-                if (no_funcionario == NULL) {
-                    no_funcionario = (No) malloc(sizeof (no));
-                    no_funcionario->funcionario = (Funcionario) malloc(sizeof (funcionario));
-                    no_funcionario->funcionario->codigo = codigo;
-                    no_funcionario->funcionario->rendimentos = rendimentos;
-                    no_funcionario->funcionario->numRegistros = 1;
-                    no_funcionario->funcionario->pilhaRegistros = reg;
-                    no_funcionario->direito = NULL;
-                    no_funcionario->esquerdo = NULL;
-                    inserirNo(no_funcionario, &arvore);
-                    //inserirNoPorRendimento(no_funcionario, &arvore);
+                if (no == NULL) {
+                    no = (No) malloc(sizeof (no));
+                    no->funcionario = (Funcionario) malloc(sizeof (funcionario));
+                    no->funcionario->codigo = codigo;
+                    no->funcionario->rendimentos = rendimentos;
+                    no->funcionario->numRegistros = 1;
+                    no->funcionario->pilhaRegistros = reg;
+                    no->direito = NULL;
+                    no->esquerdo = NULL;
+                    inserir(no, &arvore, &compararPorCodigo);
                 } else {
-                    no_funcionario->funcionario->rendimentos += rendimentos;
-                    no_funcionario->funcionario->numRegistros += 1;
-                    ultimoRegistro(no_funcionario->funcionario->pilhaRegistros)->proximoRegistro = reg;
+                    no->funcionario->rendimentos += rendimentos;
+                    no->funcionario->numRegistros += 1;
+                    ultimoRegistro(no->funcionario->pilhaRegistros)->proximoRegistro = reg;
                 }
-
                 reg = NULL;
-                no_funcionario = NULL;
+                no = NULL;
 
             }
 
@@ -242,17 +321,47 @@ Arquivo ultimoArquivo(Arquivo lista) {
     return lista;
 }
 
+/* 
+ * Opcoes:
+ * Limite               --limite-registros=limite
+ * Arquivo de saida     --arquivo-saida={path_do_arquivo}
+ * Arquivo de entrada   --lista-arquivos={path_do_arquivo}
+ * 
+ */
+
+#define LIMITE_REGISTROS "--limite-registros="
+#define ARQUIVO_SAIDA  "--arquivo-saida="
+#define ARQUIVO_ENTRADA "--lista-de-arquivos="
+
 int main(int argc, char** argv) {
 
     Arquivo listaArquivos = NULL;
-    size_t limite = 10;
+    size_t limite = -1;
+    char *arquivoSaida = NULL;
+    char *arquivoEntrada = NULL;
 
-    if (argc != 2) {
+    for (int i=1; i<argc; i++) {
+        if(strstr(argv[i],LIMITE_REGISTROS)) {
+            limite = atoi(&(argv[i][sizeof(LIMITE_REGISTROS)-1]));
+            printf("\nLimite de registros por arquivo: %zu",limite);
+        } else if(strstr(argv[i],ARQUIVO_ENTRADA)) {
+            arquivoEntrada = &(argv[i][sizeof(ARQUIVO_ENTRADA)-1]);
+            printf("\nLista de arquivos: %s",arquivoEntrada);
+        } else if(strstr(argv[i],ARQUIVO_SAIDA)) {
+            arquivoSaida = &(argv[i][sizeof(ARQUIVO_SAIDA)-1]);
+            printf("\nArquivo de Saida: %s",arquivoSaida);
+        } else {
+            printf("\nArgumento invalido: \'%s\'!\n", argv[i]);
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    if (arquivoEntrada == NULL) {
         printf("\nInforme o arquivo contendo o caminho para os arquivos que serao analisados!\n");
         exit(EXIT_FAILURE);
     }
 
-    FILE *arquivo = fopen(argv[1], "r");
+    FILE *arquivo = fopen(arquivoEntrada, "r");
 
     if (arquivo == NULL) {
         printf("\nErro ao abrir arquivo \'%s\'!\n", argv[1]);
@@ -297,13 +406,13 @@ int main(int argc, char** argv) {
     if (arvore) {
 
         printf("\n\nFuncionarios:\n\n");
-        imprimirArvoreCrescente(arvore);
+        imprimir(arvore, CRESCENTE, NULL);
         No arvoreOrdenadaPorRendimentos = NULL;
 
         printf("\n\nFuncionarios ordenados:\n\n");
 
-        ordenarPorRendimento(arvore, &arvoreOrdenadaPorRendimentos);
-        imprimirArvoreDecrescente(arvoreOrdenadaPorRendimentos);
+        ordenar(arvore, &arvoreOrdenadaPorRendimentos, &compararPorRendimentos);
+        imprimir(arvoreOrdenadaPorRendimentos, DECRESCENTE, NULL);
 
         printf("\n\nConcluido!\n\n");
 
@@ -311,4 +420,3 @@ int main(int argc, char** argv) {
 
     return (EXIT_SUCCESS);
 }
-
