@@ -361,6 +361,8 @@ int main(int argc, char** argv) {
     FILE *arquivoSaida = NULL;
     FILE *arquivoListaEntrada = NULL;
 
+    setbuf(stdout, NULL);
+    
     for (int i = 1; i < argc; i++) {
         if (strstr(argv[i], LIMITE_REGISTROS)) {
             limite = atoi(&(argv[i][sizeof (LIMITE_REGISTROS) - 1]));
