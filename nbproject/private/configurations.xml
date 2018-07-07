@@ -33,8 +33,9 @@
           <runcommandpicklistitem>"${OUTPUT_PATH}" '/home/diogo/Downloads/201805_Servidores/listaArquivos.txt' --limite-registros=10</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" --lista-de-arquivos='/home/diogo/Downloads/201805_Servidores/listaArquivos.txt' --limite-registros=10</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" --lista-de-arquivos='/home/diogo/Downloads/201805_Servidores/listaArquivos.txt' --arquivo-saida='/tmp/saida.txt' --limite-registros=10</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" --lista-de-arquivos='/home/diogo/Área de Trabalho/listaArquivos.txt' --arquivo-saida='/tmp/saida.txt' --limite-registros=10</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>"${OUTPUT_PATH}" --lista-de-arquivos='/home/diogo/Downloads/201805_Servidores/listaArquivos.txt' --arquivo-saida='/tmp/saida.txt' --limite-registros=10</runcommand>
+        <runcommand>"${OUTPUT_PATH}" --lista-de-arquivos='/home/diogo/Área de Trabalho/listaArquivos.txt' --arquivo-saida='/tmp/saida.txt' --limite-registros=10</runcommand>
         <rundir></rundir>
         <buildfirst>true</buildfirst>
         <terminal-type>0</terminal-type>
